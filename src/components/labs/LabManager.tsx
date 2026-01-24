@@ -73,7 +73,11 @@ const mockLabs: Lab[] = [
   },
 ];
 
-export function LabManager() {
+interface LabManagerProps {
+  onCreateLab?: () => void;
+}
+
+export function LabManager({ onCreateLab }: LabManagerProps) {
   const [labs, setLabs] = useState<Lab[]>(mockLabs);
   const [selectedLab, setSelectedLab] = useState<string | null>(null);
 
@@ -114,7 +118,10 @@ export function LabManager() {
           <h2 className="font-display text-2xl font-bold neon-text">Lab Manager</h2>
           <p className="text-sm text-muted-foreground mt-1">WSL2 Security Lab Orchestrator</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors neon-border">
+        <button 
+          onClick={onCreateLab}
+          className="flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors neon-border"
+        >
           <Plus className="w-4 h-4" />
           <span className="font-medium">Create Lab</span>
         </button>
