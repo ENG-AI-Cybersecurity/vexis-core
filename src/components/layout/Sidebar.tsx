@@ -21,12 +21,16 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
+import { MessageSquare, Bitcoin } from 'lucide-react';
+
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Terminal Matrix', icon: <Terminal className="w-5 h-5" /> },
   { id: 'labs', label: 'Lab Manager', icon: <Cpu className="w-5 h-5" /> },
   { id: 'robin', label: 'Dark Web Monitor', icon: <Eye className="w-5 h-5" /> },
   { id: 'marketplace', label: 'Marketplace', icon: <Package className="w-5 h-5" /> },
   { id: 'security', label: 'System Security', icon: <Shield className="w-5 h-5" /> },
+  { id: 'forum', label: 'Secret Forum', icon: <MessageSquare className="w-5 h-5" /> },
+  { id: 'crypto', label: 'Crypto Store', icon: <Bitcoin className="w-5 h-5" /> },
 ];
 
 interface SidebarProps {
