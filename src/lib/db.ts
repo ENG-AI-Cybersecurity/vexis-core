@@ -1,5 +1,46 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 
+// Theme types
+export type ThemeType = 'neon-night' | 'classic-hacker' | 'monochrome-stealth';
+
+export interface UserSettings {
+  theme: ThemeType;
+  scanlinesEnabled: boolean;
+  notificationsEnabled: boolean;
+  soundEnabled: boolean;
+}
+
+export interface Notification {
+  id: string;
+  type: 'security' | 'system' | 'robin' | 'general';
+  title: string;
+  message: string;
+  timestamp: number;
+  read: boolean;
+  critical: boolean;
+}
+
+export interface TelemetryData {
+  timestamp: number;
+  cpu: number;
+  memory: number;
+  diskIO: number;
+  networkIn: number;
+  networkOut: number;
+}
+
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  xpReward: number;
+  completed: boolean;
+  unlocked: boolean;
+  prerequisites: string[];
+  category: 'reconnaissance' | 'exploitation' | 'post-exploitation' | 'defense';
+}
+
 interface VexisDB extends DBSchema {
   terminalLogs: {
     key: string;
@@ -55,6 +96,25 @@ interface VexisDB extends DBSchema {
     };
     indexes: { 'by-timestamp': number; 'by-points': number };
   };
+  settings: {
+    key: string;
+    value: UserSettings;
+  };
+  notifications: {
+    key: string;
+    value: Notification;
+    indexes: { 'by-timestamp': number; 'by-type': string };
+  };
+  telemetry: {
+    key: number;
+    value: TelemetryData;
+    indexes: { 'by-timestamp': number };
+  };
+  missions: {
+    key: string;
+    value: Mission;
+    indexes: { 'by-category': string };
+  };
 }
 
 let dbInstance: IDBPDatabase<VexisDB> | null = null;
@@ -62,24 +122,56 @@ let dbInstance: IDBPDatabase<VexisDB> | null = null;
 export async function getDB(): Promise<IDBPDatabase<VexisDB>> {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB<VexisDB>('vexis-db', 1, {
-    upgrade(db) {
+  dbInstance = await openDB<VexisDB>('vexis-db', 2, {
+    upgrade(db, oldVersion) {
       // Terminal logs store
-      const terminalStore = db.createObjectStore('terminalLogs', { keyPath: 'id' });
-      terminalStore.createIndex('by-terminal', 'terminalId');
-      terminalStore.createIndex('by-timestamp', 'timestamp');
+      if (!db.objectStoreNames.contains('terminalLogs')) {
+        const terminalStore = db.createObjectStore('terminalLogs', { keyPath: 'id' });
+        terminalStore.createIndex('by-terminal', 'terminalId');
+        terminalStore.createIndex('by-timestamp', 'timestamp');
+      }
       
       // Labs store
-      db.createObjectStore('labs', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('labs')) {
+        db.createObjectStore('labs', { keyPath: 'id' });
+      }
       
       // IPC logs store
-      const ipcStore = db.createObjectStore('ipcLogs', { keyPath: 'id' });
-      ipcStore.createIndex('by-timestamp', 'timestamp');
+      if (!db.objectStoreNames.contains('ipcLogs')) {
+        const ipcStore = db.createObjectStore('ipcLogs', { keyPath: 'id' });
+        ipcStore.createIndex('by-timestamp', 'timestamp');
+      }
       
       // Forum posts store
-      const forumStore = db.createObjectStore('forumPosts', { keyPath: 'id' });
-      forumStore.createIndex('by-timestamp', 'timestamp');
-      forumStore.createIndex('by-points', 'points');
+      if (!db.objectStoreNames.contains('forumPosts')) {
+        const forumStore = db.createObjectStore('forumPosts', { keyPath: 'id' });
+        forumStore.createIndex('by-timestamp', 'timestamp');
+        forumStore.createIndex('by-points', 'points');
+      }
+
+      // Settings store (new in v2)
+      if (!db.objectStoreNames.contains('settings')) {
+        db.createObjectStore('settings', { keyPath: 'theme' });
+      }
+
+      // Notifications store (new in v2)
+      if (!db.objectStoreNames.contains('notifications')) {
+        const notifStore = db.createObjectStore('notifications', { keyPath: 'id' });
+        notifStore.createIndex('by-timestamp', 'timestamp');
+        notifStore.createIndex('by-type', 'type');
+      }
+
+      // Telemetry store (new in v2)
+      if (!db.objectStoreNames.contains('telemetry')) {
+        const telemetryStore = db.createObjectStore('telemetry', { keyPath: 'timestamp' });
+        telemetryStore.createIndex('by-timestamp', 'timestamp');
+      }
+
+      // Missions store (new in v2)
+      if (!db.objectStoreNames.contains('missions')) {
+        const missionsStore = db.createObjectStore('missions', { keyPath: 'id' });
+        missionsStore.createIndex('by-category', 'category');
+      }
     },
   });
   
@@ -149,4 +241,103 @@ export async function saveForumPost(post: Omit<VexisDB['forumPosts']['value'], '
 export async function getForumPosts(): Promise<VexisDB['forumPosts']['value'][]> {
   const db = await getDB();
   return db.getAll('forumPosts');
+}
+
+// Settings operations
+const DEFAULT_SETTINGS: UserSettings = {
+  theme: 'neon-night',
+  scanlinesEnabled: true,
+  notificationsEnabled: true,
+  soundEnabled: false,
+};
+
+export async function getSettings(): Promise<UserSettings> {
+  const db = await getDB();
+  const settings = await db.get('settings', 'neon-night');
+  if (!settings) {
+    await db.put('settings', DEFAULT_SETTINGS);
+    return DEFAULT_SETTINGS;
+  }
+  return settings;
+}
+
+export async function saveSettings(settings: UserSettings): Promise<void> {
+  const db = await getDB();
+  await db.put('settings', settings);
+}
+
+// Notifications operations
+export async function saveNotification(notification: Omit<Notification, 'id'>): Promise<string> {
+  const db = await getDB();
+  const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  await db.put('notifications', { ...notification, id });
+  return id;
+}
+
+export async function getNotifications(): Promise<Notification[]> {
+  const db = await getDB();
+  const notifications = await db.getAllFromIndex('notifications', 'by-timestamp');
+  return notifications.reverse();
+}
+
+export async function markNotificationRead(id: string): Promise<void> {
+  const db = await getDB();
+  const notification = await db.get('notifications', id);
+  if (notification) {
+    await db.put('notifications', { ...notification, read: true });
+  }
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  const db = await getDB();
+  const notifications = await db.getAll('notifications');
+  for (const notif of notifications) {
+    await db.put('notifications', { ...notif, read: true });
+  }
+}
+
+export async function getUnreadCount(): Promise<number> {
+  const db = await getDB();
+  const notifications = await db.getAll('notifications');
+  return notifications.filter(n => !n.read).length;
+}
+
+// Telemetry operations
+export async function saveTelemetry(data: TelemetryData): Promise<void> {
+  const db = await getDB();
+  await db.put('telemetry', data);
+  
+  // Keep only last 100 entries for performance
+  const all = await db.getAllFromIndex('telemetry', 'by-timestamp');
+  if (all.length > 100) {
+    const toDelete = all.slice(0, all.length - 100);
+    for (const item of toDelete) {
+      await db.delete('telemetry', item.timestamp);
+    }
+  }
+}
+
+export async function getTelemetry(limit = 30): Promise<TelemetryData[]> {
+  const db = await getDB();
+  const data = await db.getAllFromIndex('telemetry', 'by-timestamp');
+  return data.slice(-limit);
+}
+
+// Missions operations
+export async function getMissions(): Promise<Mission[]> {
+  const db = await getDB();
+  return db.getAll('missions');
+}
+
+export async function saveMission(mission: Mission): Promise<void> {
+  const db = await getDB();
+  await db.put('missions', mission);
+}
+
+export async function completeMission(id: string): Promise<void> {
+  const db = await getDB();
+  const mission = await db.get('missions', id);
+  if (mission) {
+    await db.put('missions', { ...mission, completed: true });
+  }
 }

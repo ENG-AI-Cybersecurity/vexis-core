@@ -9,9 +9,11 @@ interface TerminalPaneProps {
   id: number;
   title: string;
   onClose?: () => void;
+  onFocus?: () => void;
+  isFocused?: boolean;
 }
 
-export function TerminalPane({ id, title, onClose }: TerminalPaneProps) {
+export function TerminalPane({ id, title, onClose, onFocus, isFocused }: TerminalPaneProps) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const terminalInstance = useRef<Terminal | null>(null);
   const fitAddon = useRef<FitAddon | null>(null);

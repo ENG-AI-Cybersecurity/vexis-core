@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
-import { TerminalMatrix } from '@/components/terminal/TerminalMatrix';
+import { ResizableTerminalMatrix } from '@/components/terminal/ResizableTerminalMatrix';
 import { LabManager } from '@/components/labs/LabManager';
 import { DarkWebMonitor } from '@/components/robin/DarkWebMonitor';
 import { Marketplace } from '@/components/marketplace/Marketplace';
@@ -12,15 +12,22 @@ import { CryptoStore } from '@/components/crypto/CryptoStore';
 import { CommandPalette } from '@/components/command/CommandPalette';
 import { DevModeOverlay } from '@/components/debug/DevModeOverlay';
 import { LabWizard } from '@/components/labs/LabWizard';
+import { NotificationPanel } from '@/components/notifications/NotificationPanel';
+import { PerformanceAnalytics } from '@/components/analytics/PerformanceAnalytics';
+import { SettingsPanel } from '@/components/settings/SettingsPanel';
+import { StealthTunneling } from '@/components/tunneling/StealthTunneling';
+import { PayloadFactory } from '@/components/payload/PayloadFactory';
+import { MissionsHub } from '@/components/missions/MissionsHub';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
-type ViewType = 'dashboard' | 'labs' | 'robin' | 'marketplace' | 'security' | 'forum' | 'crypto';
+type ViewType = 'dashboard' | 'labs' | 'robin' | 'marketplace' | 'security' | 'forum' | 'crypto' | 'analytics' | 'settings' | 'tunneling' | 'payload' | 'missions';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [devModeOpen, setDevModeOpen] = useState(false);
   const [labWizardOpen, setLabWizardOpen] = useState(false);
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
 
   const handleViewChange = useCallback((view: ViewType) => {
     setActiveView(view);
@@ -43,7 +50,7 @@ const Index = () => {
   const renderView = () => {
     switch (activeView) {
       case 'dashboard':
-        return <TerminalMatrix />;
+        return <ResizableTerminalMatrix />;
       case 'labs':
         return <LabManager onCreateLab={() => setLabWizardOpen(true)} />;
       case 'robin':
@@ -56,8 +63,18 @@ const Index = () => {
         return <SecretForum />;
       case 'crypto':
         return <CryptoStore />;
+      case 'analytics':
+        return <PerformanceAnalytics />;
+      case 'settings':
+        return <SettingsPanel />;
+      case 'tunneling':
+        return <StealthTunneling />;
+      case 'payload':
+        return <PayloadFactory />;
+      case 'missions':
+        return <MissionsHub />;
       default:
-        return <TerminalMatrix />;
+        return <ResizableTerminalMatrix />;
     }
   };
 
@@ -82,7 +99,11 @@ const Index = () => {
           </div>
         </div>
 
-        <Sidebar activeView={activeView} onViewChange={(view) => setActiveView(view as ViewType)} />
+        <Sidebar 
+          activeView={activeView} 
+          onViewChange={(view) => setActiveView(view as ViewType)} 
+          onOpenNotifications={() => setNotificationPanelOpen(true)}
+        />
 
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           <Header />
@@ -104,6 +125,10 @@ const Index = () => {
         isOpen={labWizardOpen}
         onClose={() => setLabWizardOpen(false)}
         onLabCreated={() => {}}
+      />
+      <NotificationPanel
+        isOpen={notificationPanelOpen}
+        onClose={() => setNotificationPanelOpen(false)}
       />
     </>
   );

@@ -21,14 +21,18 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-import { MessageSquare, Bitcoin } from 'lucide-react';
+import { MessageSquare, Bitcoin, BarChart3, Globe, Target, Bomb } from 'lucide-react';
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Terminal Matrix', icon: <Terminal className="w-5 h-5" /> },
   { id: 'labs', label: 'Lab Manager', icon: <Cpu className="w-5 h-5" /> },
   { id: 'robin', label: 'Dark Web Monitor', icon: <Eye className="w-5 h-5" /> },
+  { id: 'tunneling', label: 'Stealth Tunneling', icon: <Globe className="w-5 h-5" /> },
+  { id: 'payload', label: 'Payload Factory', icon: <Bomb className="w-5 h-5" /> },
+  { id: 'missions', label: 'Missions', icon: <Target className="w-5 h-5" /> },
   { id: 'marketplace', label: 'Marketplace', icon: <Package className="w-5 h-5" /> },
   { id: 'security', label: 'System Security', icon: <Shield className="w-5 h-5" /> },
+  { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-5 h-5" /> },
   { id: 'forum', label: 'Secret Forum', icon: <MessageSquare className="w-5 h-5" /> },
   { id: 'crypto', label: 'Crypto Store', icon: <Bitcoin className="w-5 h-5" /> },
 ];
@@ -36,9 +40,10 @@ const navItems: NavItem[] = [
 interface SidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
+  onOpenNotifications?: () => void;
 }
 
-export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange, onOpenNotifications }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
