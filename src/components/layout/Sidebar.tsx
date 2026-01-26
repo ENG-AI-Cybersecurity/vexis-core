@@ -21,7 +21,7 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-import { MessageSquare, Bitcoin, BarChart3, Globe, Target, Bomb } from 'lucide-react';
+import { MessageSquare, Bitcoin, BarChart3, Globe, Target, Bomb, Store, Wallet, Code } from 'lucide-react';
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Terminal Matrix', icon: <Terminal className="w-5 h-5" /> },
@@ -30,7 +30,9 @@ const navItems: NavItem[] = [
   { id: 'tunneling', label: 'Stealth Tunneling', icon: <Globe className="w-5 h-5" /> },
   { id: 'payload', label: 'Payload Factory', icon: <Bomb className="w-5 h-5" /> },
   { id: 'missions', label: 'Missions', icon: <Target className="w-5 h-5" /> },
-  { id: 'marketplace', label: 'Marketplace', icon: <Package className="w-5 h-5" /> },
+  { id: 'script-market', label: 'Script Market', icon: <Store className="w-5 h-5" /> },
+  { id: 'vendor-forge', label: 'Vendor Forge', icon: <Code className="w-5 h-5" /> },
+  { id: 'wallet', label: 'Vexis Wallet', icon: <Wallet className="w-5 h-5" /> },
   { id: 'security', label: 'System Security', icon: <Shield className="w-5 h-5" /> },
   { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-5 h-5" /> },
   { id: 'forum', label: 'Secret Forum', icon: <MessageSquare className="w-5 h-5" /> },

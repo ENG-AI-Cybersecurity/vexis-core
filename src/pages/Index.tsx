@@ -18,9 +18,12 @@ import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { StealthTunneling } from '@/components/tunneling/StealthTunneling';
 import { PayloadFactory } from '@/components/payload/PayloadFactory';
 import { MissionsHub } from '@/components/missions/MissionsHub';
+import { VendorForge } from '@/components/marketplace/VendorForge';
+import { ScriptMarketplace } from '@/components/marketplace/ScriptMarketplace';
+import { VexisWalletUI } from '@/components/marketplace/VexisWallet';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
-type ViewType = 'dashboard' | 'labs' | 'robin' | 'marketplace' | 'security' | 'forum' | 'crypto' | 'analytics' | 'settings' | 'tunneling' | 'payload' | 'missions';
+type ViewType = 'dashboard' | 'labs' | 'robin' | 'marketplace' | 'security' | 'forum' | 'crypto' | 'analytics' | 'settings' | 'tunneling' | 'payload' | 'missions' | 'vendor-forge' | 'script-market' | 'wallet';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
@@ -73,6 +76,12 @@ const Index = () => {
         return <PayloadFactory />;
       case 'missions':
         return <MissionsHub />;
+      case 'vendor-forge':
+        return <VendorForge />;
+      case 'script-market':
+        return <ScriptMarketplace />;
+      case 'wallet':
+        return <VexisWalletUI />;
       default:
         return <ResizableTerminalMatrix />;
     }
