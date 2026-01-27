@@ -72,38 +72,18 @@ export function ResizableTerminalMatrix() {
     const row1 = visibleTerminals.slice(0, 3);
     const row2 = visibleTerminals.slice(3, 6);
 
+    // Calculate proper panel sizes that sum to 100
+    const row1Size = Math.floor(100 / row1.length);
+    const row2Size = row2.length > 0 ? Math.floor(100 / row2.length) : 0;
+
     return (
       <ResizablePanelGroup direction="vertical" className="h-full">
         {/* Top Row */}
         <ResizablePanel defaultSize={50} minSize={20}>
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {row1.map((terminal, index) => (
-              <ResizablePanel key={terminal.id} defaultSize={33.33} minSize={15}>
-                <div className="h-full p-1">
-                  <TerminalPane
-                    id={terminal.id}
-                    title={terminal.title}
-                    onClose={() => handleCloseTerminal(terminal.id)}
-                    onFocus={() => handleTerminalFocus(terminal.id)}
-                    isFocused={focusedTerminal === terminal.id}
-                  />
-                </div>
-                {index < row1.length - 1 && (
-                  <ResizableHandle withHandle className="bg-transparent hover:bg-primary/30 transition-colors" />
-                )}
-              </ResizablePanel>
-            ))}
-          </ResizablePanelGroup>
-        </ResizablePanel>
-        
-        <ResizableHandle withHandle className="bg-transparent hover:bg-primary/30 transition-colors" />
-        
-        {/* Bottom Row */}
-        {row2.length > 0 && (
-          <ResizablePanel defaultSize={50} minSize={20}>
-            <ResizablePanelGroup direction="horizontal" className="h-full">
-              {row2.map((terminal, index) => (
-                <ResizablePanel key={terminal.id} defaultSize={33.33} minSize={15}>
+              <>
+                <ResizablePanel key={terminal.id} defaultSize={row1Size} minSize={15}>
                   <div className="h-full p-1">
                     <TerminalPane
                       id={terminal.id}
@@ -113,13 +93,43 @@ export function ResizableTerminalMatrix() {
                       isFocused={focusedTerminal === terminal.id}
                     />
                   </div>
-                  {index < row2.length - 1 && (
-                    <ResizableHandle withHandle className="bg-transparent hover:bg-primary/30 transition-colors" />
-                  )}
                 </ResizablePanel>
-              ))}
-            </ResizablePanelGroup>
-          </ResizablePanel>
+                {index < row1.length - 1 && (
+                  <ResizableHandle key={`handle-${terminal.id}`} withHandle className="bg-transparent hover:bg-primary/30 transition-colors" />
+                )}
+              </>
+            ))}
+          </ResizablePanelGroup>
+        </ResizablePanel>
+        
+        {row2.length > 0 && (
+          <>
+            <ResizableHandle withHandle className="bg-transparent hover:bg-primary/30 transition-colors" />
+            
+            {/* Bottom Row */}
+            <ResizablePanel defaultSize={50} minSize={20}>
+              <ResizablePanelGroup direction="horizontal" className="h-full">
+                {row2.map((terminal, index) => (
+                  <>
+                    <ResizablePanel key={terminal.id} defaultSize={row2Size} minSize={15}>
+                      <div className="h-full p-1">
+                        <TerminalPane
+                          id={terminal.id}
+                          title={terminal.title}
+                          onClose={() => handleCloseTerminal(terminal.id)}
+                          onFocus={() => handleTerminalFocus(terminal.id)}
+                          isFocused={focusedTerminal === terminal.id}
+                        />
+                      </div>
+                    </ResizablePanel>
+                    {index < row2.length - 1 && (
+                      <ResizableHandle key={`handle-${terminal.id}`} withHandle className="bg-transparent hover:bg-primary/30 transition-colors" />
+                    )}
+                  </>
+                ))}
+              </ResizablePanelGroup>
+            </ResizablePanel>
+          </>
         )}
       </ResizablePanelGroup>
     );
