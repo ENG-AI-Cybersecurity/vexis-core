@@ -5,7 +5,6 @@ import { Header } from '@/components/layout/Header';
 import { ResizableTerminalMatrix } from '@/components/terminal/ResizableTerminalMatrix';
 import { LabManager } from '@/components/labs/LabManager';
 import { DarkWebMonitor } from '@/components/robin/DarkWebMonitor';
-import { Marketplace } from '@/components/marketplace/Marketplace';
 import { SystemSecurity } from '@/components/security/SystemSecurity';
 import { SecretForum } from '@/components/forum/SecretForum';
 import { CryptoStore } from '@/components/crypto/CryptoStore';
@@ -21,12 +20,32 @@ import { MissionsHub } from '@/components/missions/MissionsHub';
 import { VendorForge } from '@/components/marketplace/VendorForge';
 import { ScriptMarketplace } from '@/components/marketplace/ScriptMarketplace';
 import { VexisWalletUI } from '@/components/marketplace/VexisWallet';
+import { UserDashboard } from '@/components/dashboard/UserDashboard';
+import { MemberDashboard } from '@/components/dashboard/MemberDashboard';
+import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
-type ViewType = 'dashboard' | 'labs' | 'robin' | 'marketplace' | 'security' | 'forum' | 'crypto' | 'analytics' | 'settings' | 'tunneling' | 'payload' | 'missions' | 'vendor-forge' | 'script-market' | 'wallet';
+type ViewType = 
+  | 'dashboard' 
+  | 'labs' 
+  | 'robin' 
+  | 'security' 
+  | 'forum' 
+  | 'crypto' 
+  | 'analytics' 
+  | 'settings' 
+  | 'tunneling' 
+  | 'payload' 
+  | 'missions' 
+  | 'vendor-forge' 
+  | 'script-market' 
+  | 'wallet'
+  | 'user-dashboard'
+  | 'member-dashboard'
+  | 'admin-dashboard';
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<ViewType>('dashboard');
+  const [activeView, setActiveView] = useState<ViewType>('user-dashboard');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [devModeOpen, setDevModeOpen] = useState(false);
   const [labWizardOpen, setLabWizardOpen] = useState(false);
@@ -52,14 +71,18 @@ const Index = () => {
 
   const renderView = () => {
     switch (activeView) {
+      case 'user-dashboard':
+        return <UserDashboard />;
+      case 'member-dashboard':
+        return <MemberDashboard />;
+      case 'admin-dashboard':
+        return <AdminDashboard />;
       case 'dashboard':
         return <ResizableTerminalMatrix />;
       case 'labs':
         return <LabManager onCreateLab={() => setLabWizardOpen(true)} />;
       case 'robin':
         return <DarkWebMonitor />;
-      case 'marketplace':
-        return <Marketplace />;
       case 'security':
         return <SystemSecurity />;
       case 'forum':
@@ -83,7 +106,7 @@ const Index = () => {
       case 'wallet':
         return <VexisWalletUI />;
       default:
-        return <ResizableTerminalMatrix />;
+        return <UserDashboard />;
     }
   };
 
@@ -94,18 +117,15 @@ const Index = () => {
         {/* Animated background grid */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div 
-            className="absolute inset-0 opacity-[0.02]"
+            className="absolute inset-0 opacity-[0.015]"
             style={{
               backgroundImage: `
-                linear-gradient(hsl(var(--neon-green) / 0.3) 1px, transparent 1px),
-                linear-gradient(90deg, hsl(var(--neon-green) / 0.3) 1px, transparent 1px)
+                linear-gradient(hsl(var(--primary) / 0.4) 1px, transparent 1px),
+                linear-gradient(90deg, hsl(var(--primary) / 0.4) 1px, transparent 1px)
               `,
-              backgroundSize: '50px 50px',
+              backgroundSize: '60px 60px',
             }}
           />
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent scan-line" />
-          </div>
         </div>
 
         <Sidebar 

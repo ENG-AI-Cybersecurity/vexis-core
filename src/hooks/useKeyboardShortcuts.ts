@@ -1,6 +1,23 @@
 import { useEffect, useCallback } from 'react';
 
-type ViewType = 'dashboard' | 'labs' | 'robin' | 'marketplace' | 'security' | 'forum' | 'crypto';
+type ViewType = 
+  | 'dashboard' 
+  | 'labs' 
+  | 'robin' 
+  | 'security' 
+  | 'forum' 
+  | 'crypto' 
+  | 'analytics' 
+  | 'settings' 
+  | 'tunneling' 
+  | 'payload' 
+  | 'missions' 
+  | 'vendor-forge' 
+  | 'script-market' 
+  | 'wallet'
+  | 'user-dashboard'
+  | 'member-dashboard'
+  | 'admin-dashboard';
 
 interface KeyboardShortcutsOptions {
   onViewChange: (view: ViewType) => void;
@@ -22,16 +39,16 @@ export function useKeyboardShortcuts({
       return;
     }
     
-    // Ctrl+1-7 for view switching
+    // Ctrl+1-9 for view switching
     if (event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
       const viewMap: Record<string, ViewType> = {
-        '1': 'dashboard',
-        '2': 'labs',
-        '3': 'robin',
-        '4': 'marketplace',
-        '5': 'security',
-        '6': 'forum',
-        '7': 'crypto',
+        '1': 'user-dashboard',
+        '2': 'member-dashboard',
+        '3': 'admin-dashboard',
+        '4': 'dashboard',
+        '5': 'labs',
+        '6': 'robin',
+        '7': 'security',
       };
       
       if (viewMap[event.key]) {

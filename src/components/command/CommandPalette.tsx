@@ -5,7 +5,6 @@ import {
   Terminal,
   Cpu,
   Eye,
-  Package,
   Shield,
   MessageSquare,
   Bitcoin,
@@ -15,9 +14,35 @@ import {
   Settings,
   Bug,
   Zap,
+  User,
+  Star,
+  Crown,
+  Globe,
+  Bomb,
+  Store,
+  Wallet,
+  Target,
+  BarChart3,
 } from 'lucide-react';
 
-type ViewType = 'dashboard' | 'labs' | 'robin' | 'marketplace' | 'security' | 'forum' | 'crypto';
+type ViewType = 
+  | 'dashboard' 
+  | 'labs' 
+  | 'robin' 
+  | 'security' 
+  | 'forum' 
+  | 'crypto' 
+  | 'analytics' 
+  | 'settings' 
+  | 'tunneling' 
+  | 'payload' 
+  | 'missions' 
+  | 'vendor-forge' 
+  | 'script-market' 
+  | 'wallet'
+  | 'user-dashboard'
+  | 'member-dashboard'
+  | 'admin-dashboard';
 
 interface CommandItem {
   id: string;
@@ -41,14 +66,31 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onToggleDevMode }:
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const commands: CommandItem[] = useMemo(() => [
-    // Navigation
-    { id: 'nav-dashboard', title: 'Terminal Matrix', subtitle: 'Main dashboard', icon: <Terminal className="w-4 h-4" />, action: () => { onNavigate('dashboard'); onClose(); }, shortcut: 'Ctrl+1', category: 'navigation' },
-    { id: 'nav-labs', title: 'Lab Manager', subtitle: 'WSL2 labs', icon: <Cpu className="w-4 h-4" />, action: () => { onNavigate('labs'); onClose(); }, shortcut: 'Ctrl+2', category: 'navigation' },
-    { id: 'nav-robin', title: 'Dark Web Monitor', subtitle: 'Robin integration', icon: <Eye className="w-4 h-4" />, action: () => { onNavigate('robin'); onClose(); }, shortcut: 'Ctrl+3', category: 'navigation' },
-    { id: 'nav-marketplace', title: 'Marketplace', subtitle: 'Mission packs', icon: <Package className="w-4 h-4" />, action: () => { onNavigate('marketplace'); onClose(); }, shortcut: 'Ctrl+4', category: 'navigation' },
-    { id: 'nav-security', title: 'System Security', subtitle: 'IPC & Auth', icon: <Shield className="w-4 h-4" />, action: () => { onNavigate('security'); onClose(); }, shortcut: 'Ctrl+5', category: 'navigation' },
-    { id: 'nav-forum', title: 'Secret Forum', subtitle: 'Community', icon: <MessageSquare className="w-4 h-4" />, action: () => { onNavigate('forum'); onClose(); }, shortcut: 'Ctrl+6', category: 'navigation' },
-    { id: 'nav-crypto', title: 'Crypto Store', subtitle: 'BTC/ETH marketplace', icon: <Bitcoin className="w-4 h-4" />, action: () => { onNavigate('crypto'); onClose(); }, shortcut: 'Ctrl+7', category: 'navigation' },
+    // Dashboards
+    { id: 'nav-user-dash', title: 'User Dashboard', subtitle: 'Basic user view', icon: <User className="w-4 h-4" />, action: () => { onNavigate('user-dashboard'); onClose(); }, shortcut: 'Ctrl+1', category: 'navigation' },
+    { id: 'nav-member-dash', title: 'Member Dashboard', subtitle: 'Premium member view', icon: <Star className="w-4 h-4" />, action: () => { onNavigate('member-dashboard'); onClose(); }, shortcut: 'Ctrl+2', category: 'navigation' },
+    { id: 'nav-admin-dash', title: 'Admin Dashboard', subtitle: 'Admin control center', icon: <Crown className="w-4 h-4" />, action: () => { onNavigate('admin-dashboard'); onClose(); }, shortcut: 'Ctrl+3', category: 'navigation' },
+    
+    // Terminal & Labs
+    { id: 'nav-dashboard', title: 'Terminal Matrix', subtitle: 'Main terminal', icon: <Terminal className="w-4 h-4" />, action: () => { onNavigate('dashboard'); onClose(); }, shortcut: 'Ctrl+4', category: 'navigation' },
+    { id: 'nav-labs', title: 'Lab Manager', subtitle: 'WSL2 labs', icon: <Cpu className="w-4 h-4" />, action: () => { onNavigate('labs'); onClose(); }, shortcut: 'Ctrl+5', category: 'navigation' },
+    
+    // Security Tools
+    { id: 'nav-robin', title: 'Dark Web Monitor', subtitle: 'Robin integration', icon: <Eye className="w-4 h-4" />, action: () => { onNavigate('robin'); onClose(); }, shortcut: 'Ctrl+6', category: 'navigation' },
+    { id: 'nav-tunneling', title: 'Stealth Tunneling', subtitle: 'VPN & Proxy', icon: <Globe className="w-4 h-4" />, action: () => { onNavigate('tunneling'); onClose(); }, category: 'navigation' },
+    { id: 'nav-payload', title: 'Payload Factory', subtitle: 'Exploit builder', icon: <Bomb className="w-4 h-4" />, action: () => { onNavigate('payload'); onClose(); }, category: 'navigation' },
+    { id: 'nav-security', title: 'System Security', subtitle: 'IPC & Auth', icon: <Shield className="w-4 h-4" />, action: () => { onNavigate('security'); onClose(); }, shortcut: 'Ctrl+7', category: 'navigation' },
+    
+    // Marketplace
+    { id: 'nav-script-market', title: 'Script Market', subtitle: 'Browse scripts', icon: <Store className="w-4 h-4" />, action: () => { onNavigate('script-market'); onClose(); }, category: 'navigation' },
+    { id: 'nav-vendor-forge', title: 'Vendor Forge', subtitle: 'Sell scripts', icon: <Zap className="w-4 h-4" />, action: () => { onNavigate('vendor-forge'); onClose(); }, category: 'navigation' },
+    { id: 'nav-wallet', title: 'Vexis Wallet', subtitle: 'Crypto wallet', icon: <Wallet className="w-4 h-4" />, action: () => { onNavigate('wallet'); onClose(); }, category: 'navigation' },
+    { id: 'nav-crypto', title: 'Crypto Store', subtitle: 'BTC/ETH marketplace', icon: <Bitcoin className="w-4 h-4" />, action: () => { onNavigate('crypto'); onClose(); }, category: 'navigation' },
+    
+    // Community
+    { id: 'nav-missions', title: 'Missions', subtitle: 'Gamified tasks', icon: <Target className="w-4 h-4" />, action: () => { onNavigate('missions'); onClose(); }, category: 'navigation' },
+    { id: 'nav-forum', title: 'Secret Forum', subtitle: 'Community', icon: <MessageSquare className="w-4 h-4" />, action: () => { onNavigate('forum'); onClose(); }, category: 'navigation' },
+    { id: 'nav-analytics', title: 'Analytics', subtitle: 'Performance metrics', icon: <BarChart3 className="w-4 h-4" />, action: () => { onNavigate('analytics'); onClose(); }, category: 'navigation' },
     
     // Actions
     { id: 'action-new-lab', title: 'Create New Lab', subtitle: 'Start lab wizard', icon: <Zap className="w-4 h-4" />, action: () => { onNavigate('labs'); onClose(); }, category: 'action' },
@@ -56,7 +98,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onToggleDevMode }:
     
     // System
     { id: 'sys-devmode', title: 'Toggle Developer Mode', subtitle: 'IPC debugger', icon: <Bug className="w-4 h-4" />, action: () => { onToggleDevMode(); onClose(); }, shortcut: 'Ctrl+Shift+D', category: 'system' },
-    { id: 'sys-settings', title: 'Settings', subtitle: 'Configuration', icon: <Settings className="w-4 h-4" />, action: () => onClose(), category: 'system' },
+    { id: 'sys-settings', title: 'Settings', subtitle: 'Configuration', icon: <Settings className="w-4 h-4" />, action: () => { onNavigate('settings'); onClose(); }, category: 'system' },
   ], [onNavigate, onClose, onToggleDevMode]);
 
   const fuse = useMemo(() => new Fuse(commands, {
