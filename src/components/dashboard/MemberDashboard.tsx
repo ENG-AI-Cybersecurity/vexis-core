@@ -1,41 +1,97 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Terminal, 
   Eye, 
   Shield, 
   Activity,
-  TrendingUp,
-  Clock,
   Zap,
   Download,
   Server,
   Globe,
   Key,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 
+interface MemberStats {
+  activeSessions: number;
+  scansToday: number;
+  securityScore: number;
+  uptime: string;
+}
+
+interface ActiveTool {
+  name: string;
+  status: 'running' | 'completed' | 'queued';
+  progress: number;
+}
+
+interface DownloadItem {
+  name: string;
+  size: string;
+  date: string;
+}
+
+// Data will be fetched from backend when connected
+async function fetchMemberData(): Promise<{
+  stats: MemberStats;
+  activeTools: ActiveTool[];
+  downloads: DownloadItem[];
+}> {
+  // Placeholder: Replace with actual API call
+  return {
+    stats: {
+      activeSessions: 0,
+      scansToday: 0,
+      securityScore: 0,
+      uptime: '0%'
+    },
+    activeTools: [],
+    downloads: []
+  };
+}
+
 export function MemberDashboard() {
-  const stats = [
-    { label: 'Active Sessions', value: '15', icon: Terminal, color: 'text-primary' },
-    { label: 'Scans Today', value: '87', icon: Eye, color: 'text-orange-500' },
-    { label: 'Security Score', value: '94%', icon: Shield, color: 'text-green-500' },
-    { label: 'Uptime', value: '99.9%', icon: Activity, color: 'text-blue-500' },
-  ];
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<MemberStats | null>(null);
+  const [activeTools, setActiveTools] = useState<ActiveTool[]>([]);
+  const [downloads, setDownloads] = useState<DownloadItem[]>([]);
 
-  const activeTools = [
-    { name: 'Network Scanner', status: 'running', progress: 67 },
-    { name: 'Vulnerability Assessment', status: 'running', progress: 45 },
-    { name: 'Traffic Analyzer', status: 'completed', progress: 100 },
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchMemberData();
+        setStats(data.stats);
+        setActiveTools(data.activeTools);
+        setDownloads(data.downloads);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
-  const downloads = [
-    { name: 'Custom Exploit Pack v2.1', size: '24 MB', date: 'Today' },
-    { name: 'OSINT Toolkit', size: '156 MB', date: 'Yesterday' },
-    { name: 'Network Utils Bundle', size: '89 MB', date: '3 days ago' },
-  ];
+  const statItems = stats ? [
+    { label: 'Active Sessions', value: stats.activeSessions.toString(), icon: Terminal, color: 'text-primary' },
+    { label: 'Scans Today', value: stats.scansToday.toString(), icon: Eye, color: 'text-orange-500' },
+    { label: 'Security Score', value: `${stats.securityScore}%`, icon: Shield, color: 'text-green-500' },
+    { label: 'Uptime', value: stats.uptime, icon: Activity, color: 'text-blue-500' },
+  ] : [];
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-muted-foreground">Loading member dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-auto p-6 space-y-6">
@@ -56,7 +112,7 @@ export function MemberDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
+        {statItems.map((stat, index) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -91,24 +147,32 @@ export function MemberDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {activeTools.map((tool, index) => (
-              <motion.div
-                key={tool.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="p-3 rounded-lg bg-muted/30 border border-border/30"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{tool.name}</span>
-                  <Badge variant={tool.status === 'running' ? 'default' : 'secondary'}>
-                    {tool.status}
-                  </Badge>
-                </div>
-                <Progress value={tool.progress} className="h-2" />
-                <p className="text-xs text-muted-foreground mt-1">{tool.progress}% complete</p>
-              </motion.div>
-            ))}
+            {activeTools.length > 0 ? (
+              activeTools.map((tool, index) => (
+                <motion.div
+                  key={tool.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-3 rounded-lg bg-muted/30 border border-border/30"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">{tool.name}</span>
+                    <Badge variant={tool.status === 'running' ? 'default' : 'secondary'}>
+                      {tool.status}
+                    </Badge>
+                  </div>
+                  <Progress value={tool.progress} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-1">{tool.progress}% complete</p>
+                </motion.div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>No active tools running</p>
+                <p className="text-xs mt-1">Launch a tool to see it here</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -150,21 +214,28 @@ export function MemberDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {downloads.map((item, index) => (
-              <motion.div
-                key={item.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="p-4 rounded-lg bg-muted/30 border border-border/30 hover:border-primary/30 transition-colors"
-              >
-                <Download className="w-8 h-8 text-primary mb-2" />
-                <h4 className="font-medium truncate">{item.name}</h4>
-                <p className="text-sm text-muted-foreground">{item.size} • {item.date}</p>
-              </motion.div>
-            ))}
-          </div>
+          {downloads.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {downloads.map((item, index) => (
+                <motion.div
+                  key={item.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-4 rounded-lg bg-muted/30 border border-border/30 hover:border-primary/30 transition-colors"
+                >
+                  <Download className="w-8 h-8 text-primary mb-2" />
+                  <h4 className="font-medium truncate">{item.name}</h4>
+                  <p className="text-sm text-muted-foreground">{item.size} • {item.date}</p>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Download className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No recent downloads</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

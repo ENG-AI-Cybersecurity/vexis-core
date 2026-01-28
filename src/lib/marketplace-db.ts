@@ -178,34 +178,41 @@ export async function getTransactions(): Promise<WalletTransaction[]> {
   return txs.reverse();
 }
 
-// Wallet operations
-const DEFAULT_WALLET: VexisWallet = {
-  id: 'primary',
-  btcAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-  ethAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-  usdtAddress: 'TN9RRaXkCFtTXRso2GdTZxSxxwufNfw3pa',
-  btcBalance: 0.0542,
-  ethBalance: 1.234,
-  usdtBalance: 2500.00,
-  btcPendingEscrow: 0.012,
-  ethPendingEscrow: 0.5,
-  usdtPendingEscrow: 750.00,
-};
-
-export async function getWallet(): Promise<VexisWallet> {
+// Wallet operations - Clean initialization without fake data
+export async function getWallet(): Promise<VexisWallet | null> {
   const db = await getMarketplaceDB();
   const wallet = await db.get('wallet', 'primary');
-  if (!wallet) {
-    await db.put('wallet', DEFAULT_WALLET);
-    return DEFAULT_WALLET;
-  }
-  return wallet;
+  return wallet || null;
+}
+
+export async function initializeWallet(addresses: {
+  btcAddress: string;
+  ethAddress: string;
+  usdtAddress: string;
+}): Promise<VexisWallet> {
+  const db = await getMarketplaceDB();
+  const newWallet: VexisWallet = {
+    id: 'primary',
+    btcAddress: addresses.btcAddress,
+    ethAddress: addresses.ethAddress,
+    usdtAddress: addresses.usdtAddress,
+    btcBalance: 0,
+    ethBalance: 0,
+    usdtBalance: 0,
+    btcPendingEscrow: 0,
+    ethPendingEscrow: 0,
+    usdtPendingEscrow: 0,
+  };
+  await db.put('wallet', newWallet);
+  return newWallet;
 }
 
 export async function updateWallet(wallet: Partial<VexisWallet>): Promise<void> {
   const db = await getMarketplaceDB();
   const current = await getWallet();
-  await db.put('wallet', { ...current, ...wallet });
+  if (current) {
+    await db.put('wallet', { ...current, ...wallet });
+  }
 }
 
 // Sandbox test operations
@@ -265,7 +272,7 @@ export function analyzeLogicDensity(code: string): { score: number; flags: strin
   return { score: Math.max(0, Math.min(100, score)), flags };
 }
 
-// Generate mock safety report
+// Generate safety report from sandbox analysis
 export function generateSafetyReport(code: string): SafetyReport {
   const hasNetwork = /socket|http|fetch|request|urllib|curl/i.test(code);
   const hasFileOps = /open\(|write\(|fs\.|readFile|writeFile|fopen/i.test(code);
