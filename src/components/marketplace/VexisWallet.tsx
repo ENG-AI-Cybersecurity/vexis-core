@@ -9,22 +9,20 @@ import {
   CheckCircle,
   XCircle,
   Copy,
-  ExternalLink,
   RefreshCw,
   Lock,
-  Unlock,
   QrCode,
   TrendingUp,
   AlertTriangle,
+  Plus,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { QRCodeSVG } from 'qrcode.react';
@@ -34,50 +32,8 @@ import {
   getWallet,
   getTransactions,
   saveTransaction,
+  initializeWallet,
 } from '@/lib/marketplace-db';
-
-const mockTransactions: WalletTransaction[] = [
-  {
-    id: 'tx-001',
-    type: 'sale',
-    assetId: 'asset-001',
-    assetTitle: 'Advanced Port Scanner',
-    amount: 0.002,
-    currency: 'BTC',
-    status: 'completed',
-    txHash: '0x7f9fade1c0d57a7af66ab4ead79fade1c0d57a7',
-    timestamp: Date.now() - 86400000,
-  },
-  {
-    id: 'tx-002',
-    type: 'escrow_lock',
-    assetId: 'asset-002',
-    assetTitle: 'Network Sniffer Pro',
-    amount: 0.5,
-    currency: 'ETH',
-    status: 'pending',
-    timestamp: Date.now() - 3600000,
-  },
-  {
-    id: 'tx-003',
-    type: 'withdrawal',
-    amount: 500,
-    currency: 'USDT',
-    status: 'confirming',
-    toAddress: 'TN9RRaXkCFtTXRso2GdTZxSxxwufNfw3pa',
-    timestamp: Date.now() - 7200000,
-  },
-  {
-    id: 'tx-004',
-    type: 'purchase',
-    assetId: 'asset-003',
-    assetTitle: 'Privilege Escalation Kit',
-    amount: 150,
-    currency: 'USDT',
-    status: 'completed',
-    timestamp: Date.now() - 172800000,
-  },
-];
 
 export function VexisWalletUI() {
   const [wallet, setWallet] = useState<WalletType | null>(null);
@@ -87,6 +43,12 @@ export function VexisWalletUI() {
   const [withdrawAddress, setWithdrawAddress] = useState('');
   const [showQR, setShowQR] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSetup, setShowSetup] = useState(false);
+  
+  // Setup form state
+  const [setupBTC, setSetupBTC] = useState('');
+  const [setupETH, setSetupETH] = useState('');
+  const [setupUSDT, setSetupUSDT] = useState('');
 
   useEffect(() => {
     loadWalletData();
@@ -98,17 +60,34 @@ export function VexisWalletUI() {
       const walletData = await getWallet();
       setWallet(walletData);
       
-      let txs = await getTransactions();
-      if (txs.length === 0) {
-        // Initialize with mock data
-        for (const tx of mockTransactions) {
-          await saveTransaction(tx);
-        }
-        txs = mockTransactions;
+      if (!walletData) {
+        setShowSetup(true);
       }
+      
+      const txs = await getTransactions();
       setTransactions(txs);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSetupWallet = async () => {
+    if (!setupBTC || !setupETH || !setupUSDT) {
+      toast.error('Please enter all wallet addresses');
+      return;
+    }
+    
+    try {
+      const newWallet = await initializeWallet({
+        btcAddress: setupBTC,
+        ethAddress: setupETH,
+        usdtAddress: setupUSDT,
+      });
+      setWallet(newWallet);
+      setShowSetup(false);
+      toast.success('Wallet initialized successfully');
+    } catch {
+      toast.error('Failed to initialize wallet');
     }
   };
 
@@ -141,15 +120,6 @@ export function VexisWalletUI() {
       case 'BTC': return wallet.btcAddress;
       case 'ETH': return wallet.ethAddress;
       case 'USDT': return wallet.usdtAddress;
-    }
-  };
-
-  const getCurrencyIcon = (currency: string) => {
-    switch (currency) {
-      case 'BTC': return <Bitcoin className="w-5 h-5 text-[#F7931A]" />;
-      case 'ETH': return <span className="text-[#627EEA] font-bold text-lg">Ξ</span>;
-      case 'USDT': return <span className="text-[#26A17B] font-bold text-lg">₮</span>;
-      default: return null;
     }
   };
 
@@ -215,7 +185,75 @@ export function VexisWalletUI() {
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-muted-foreground">Loading wallet...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Wallet Setup Screen
+  if (showSetup || !wallet) {
+    return (
+      <div className="h-full flex items-center justify-center p-6">
+        <Card className="glass-panel border-primary/20 max-w-md w-full">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Wallet className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-xl">Initialize Your Wallet</CardTitle>
+            <p className="text-muted-foreground text-sm mt-2">
+              Enter your cryptocurrency wallet addresses to get started
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-xs text-muted-foreground uppercase flex items-center gap-2 mb-2">
+                <Bitcoin className="w-4 h-4 text-[#F7931A]" />
+                Bitcoin Address
+              </label>
+              <Input
+                value={setupBTC}
+                onChange={(e) => setSetupBTC(e.target.value)}
+                placeholder="bc1q..."
+                className="bg-background/50"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground uppercase flex items-center gap-2 mb-2">
+                <span className="text-[#627EEA] font-bold">Ξ</span>
+                Ethereum Address
+              </label>
+              <Input
+                value={setupETH}
+                onChange={(e) => setSetupETH(e.target.value)}
+                placeholder="0x..."
+                className="bg-background/50"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground uppercase flex items-center gap-2 mb-2">
+                <span className="text-[#26A17B] font-bold">₮</span>
+                USDT Address (TRC-20)
+              </label>
+              <Input
+                value={setupUSDT}
+                onChange={(e) => setSetupUSDT(e.target.value)}
+                placeholder="T..."
+                className="bg-background/50"
+              />
+            </div>
+            <Button
+              onClick={handleSetupWallet}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={!setupBTC || !setupETH || !setupUSDT}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Initialize Wallet
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -425,6 +463,7 @@ export function VexisWalletUI() {
                   <div className="text-center py-12 text-muted-foreground">
                     <Wallet className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>No transactions yet</p>
+                    <p className="text-xs mt-1">Your transaction history will appear here</p>
                   </div>
                 ) : (
                   <div className="space-y-3 pr-4">
@@ -451,15 +490,11 @@ export function VexisWalletUI() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className={cn(
-                              "text-sm font-medium",
-                              tx.type === 'sale' || tx.type === 'escrow_release' 
-                                ? 'text-primary' : 'text-foreground'
-                            )}>
+                            <div className={cn("text-sm font-mono font-medium", getCurrencyColor(tx.currency))}>
                               {tx.type === 'sale' || tx.type === 'escrow_release' ? '+' : '-'}
-                              {tx.amount} {tx.currency}
+                              {tx.amount.toFixed(tx.currency === 'USDT' ? 2 : 4)} {tx.currency}
                             </div>
-                            <div className="flex items-center gap-1 justify-end">
+                            <div className="flex items-center gap-1 justify-end mt-1">
                               {getStatusIcon(tx.status)}
                               <span className="text-xs text-muted-foreground capitalize">
                                 {tx.status}
@@ -467,16 +502,8 @@ export function VexisWalletUI() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
-                          <span className="text-[10px] text-muted-foreground">
-                            {new Date(tx.timestamp).toLocaleString()}
-                          </span>
-                          {tx.txHash && (
-                            <Button variant="ghost" size="sm" className="h-6 text-[10px]">
-                              <ExternalLink className="w-3 h-3 mr-1" />
-                              View TX
-                            </Button>
-                          )}
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {new Date(tx.timestamp).toLocaleString()}
                         </div>
                       </motion.div>
                     ))}
