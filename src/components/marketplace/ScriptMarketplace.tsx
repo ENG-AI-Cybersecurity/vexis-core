@@ -18,6 +18,7 @@ import {
   Package,
   User,
   Tag,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,123 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
-import { SecurityAsset, getAssets, saveAsset } from '@/lib/marketplace-db';
+import { SecurityAsset, getAssets } from '@/lib/marketplace-db';
 import { ExecutionSandbox } from './ExecutionSandbox';
-
-// Mock marketplace data
-const mockAssets: SecurityAsset[] = [
-  {
-    id: 'mk-001',
-    vendorId: 'vendor-elite',
-    vendorName: 'EliteHax0r',
-    title: 'Advanced Port Scanner Pro',
-    description: 'Multi-threaded port scanner with service detection, banner grabbing, and stealth modes. Supports TCP/UDP scanning with customizable timing.',
-    category: 'reconnaissance',
-    language: 'python',
-    sourceCode: '#!/usr/bin/env python3\nimport socket\nimport threading\n...',
-    usageLog: '$ ./scanner.py -t 192.168.1.0/24 -p 1-1000\n[*] Scanning 256 hosts...',
-    priceBTC: 0.0015,
-    priceETH: 0.025,
-    priceUSDT: 65,
-    logicDensityScore: 87,
-    isVerified: true,
-    isFlagged: false,
-    vexisSecureBadge: true,
-    downloads: 234,
-    rating: 4.8,
-    createdAt: Date.now() - 2592000000,
-    updatedAt: Date.now() - 86400000,
-  },
-  {
-    id: 'mk-002',
-    vendorId: 'vendor-shadow',
-    vendorName: 'ShadowNet',
-    title: 'Privilege Escalation Toolkit',
-    description: 'Comprehensive privesc toolkit for Linux systems. Includes kernel exploit checks, SUID analysis, and automated enumeration.',
-    category: 'post-exploitation',
-    language: 'bash',
-    sourceCode: '#!/bin/bash\n# Privilege Escalation Enumeration\n...',
-    usageLog: '$ ./privesc.sh --full\n[+] Checking SUID binaries...',
-    priceBTC: 0.003,
-    priceETH: 0.05,
-    priceUSDT: 125,
-    logicDensityScore: 92,
-    isVerified: true,
-    isFlagged: false,
-    vexisSecureBadge: true,
-    downloads: 567,
-    rating: 4.9,
-    createdAt: Date.now() - 5184000000,
-    updatedAt: Date.now() - 172800000,
-  },
-  {
-    id: 'mk-003',
-    vendorId: 'vendor-zero',
-    vendorName: 'ZeroDay Labs',
-    title: 'Network Sniffer Pro',
-    description: 'Advanced packet capture and analysis tool with protocol decoding and traffic visualization.',
-    category: 'reconnaissance',
-    language: 'go',
-    sourceCode: 'package main\n\nimport "github.com/google/gopacket"\n...',
-    usageLog: '$ ./sniffer -i eth0 -f "port 80"\n[*] Capturing packets...',
-    priceBTC: 0.002,
-    priceETH: 0.035,
-    priceUSDT: 85,
-    logicDensityScore: 78,
-    isVerified: true,
-    isFlagged: false,
-    vexisSecureBadge: true,
-    downloads: 189,
-    rating: 4.5,
-    createdAt: Date.now() - 1296000000,
-    updatedAt: Date.now() - 432000000,
-  },
-  {
-    id: 'mk-004',
-    vendorId: 'vendor-anon',
-    vendorName: 'AnonScript',
-    title: 'Automated Recon Framework',
-    description: 'All-in-one reconnaissance framework combining subdomain enumeration, port scanning, and vulnerability detection.',
-    category: 'reconnaissance',
-    language: 'python',
-    sourceCode: '#!/usr/bin/env python3\nimport subprocess\n...',
-    usageLog: '$ ./recon.py -d target.com --full\n[*] Starting enumeration...',
-    priceBTC: 0.0025,
-    priceETH: 0.04,
-    priceUSDT: 100,
-    logicDensityScore: 45,
-    isVerified: false,
-    isFlagged: true,
-    flagReason: 'High frequency of generic variable names; Excessive comment density',
-    vexisSecureBadge: false,
-    downloads: 12,
-    rating: 3.2,
-    createdAt: Date.now() - 432000000,
-    updatedAt: Date.now() - 86400000,
-  },
-  {
-    id: 'mk-005',
-    vendorId: 'vendor-cyber',
-    vendorName: 'CyberDefense',
-    title: 'Firewall Rule Analyzer',
-    description: 'Defense-focused tool for analyzing firewall configurations and detecting misconfigurations.',
-    category: 'defense',
-    language: 'python',
-    sourceCode: '#!/usr/bin/env python3\nimport re\nimport json\n...',
-    usageLog: '$ ./fw-analyze.py -c iptables.rules\n[*] Analyzing 42 rules...',
-    priceBTC: 0.001,
-    priceETH: 0.015,
-    priceUSDT: 40,
-    logicDensityScore: 82,
-    isVerified: true,
-    isFlagged: false,
-    vexisSecureBadge: true,
-    downloads: 89,
-    rating: 4.6,
-    createdAt: Date.now() - 864000000,
-    updatedAt: Date.now() - 259200000,
-  },
-];
+import { TransactionStepper } from './TransactionStepper';
 
 const categoryFilters = [
   { value: 'all', label: 'All Categories' },
@@ -158,12 +45,14 @@ const categoryFilters = [
 
 export function ScriptMarketplace() {
   const [assets, setAssets] = useState<SecurityAsset[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'downloads' | 'rating' | 'newest'>('downloads');
   const [selectedAsset, setSelectedAsset] = useState<SecurityAsset | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showSandbox, setShowSandbox] = useState(false);
+  const [showTransaction, setShowTransaction] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'ETH' | 'USDT'>('USDT');
 
   useEffect(() => {
@@ -171,17 +60,15 @@ export function ScriptMarketplace() {
   }, []);
 
   const loadAssets = async () => {
-    let allAssets = await getAssets();
-    
-    // Merge with mock data if no assets
-    if (allAssets.length === 0) {
-      for (const asset of mockAssets) {
-        await saveAsset(asset);
-      }
-      allAssets = mockAssets;
+    setIsLoading(true);
+    try {
+      // Fetch real assets from IndexedDB - no mock data
+      const allAssets = await getAssets();
+      // Only show verified assets in marketplace
+      setAssets(allAssets.filter(a => a.isVerified || a.vexisSecureBadge));
+    } finally {
+      setIsLoading(false);
     }
-    
-    setAssets(allAssets);
   };
 
   const filteredAssets = assets
@@ -207,10 +94,8 @@ export function ScriptMarketplace() {
     });
 
   const handlePurchase = (asset: SecurityAsset) => {
-    toast.success(`Initiating purchase of "${asset.title}"`, {
-      icon: '🔒',
-      duration: 3000,
-    });
+    setSelectedAsset(asset);
+    setShowTransaction(true);
   };
 
   const handleValidationComplete = (passed: boolean) => {
@@ -228,6 +113,17 @@ export function ScriptMarketplace() {
       case 'USDT': return `$${asset.priceUSDT}`;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-muted-foreground">Loading marketplace...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col p-6 space-y-6">
@@ -325,6 +221,15 @@ export function ScriptMarketplace() {
 
       {/* Script Grid */}
       <ScrollArea className="flex-1">
+        {filteredAssets.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Package className="w-16 h-16 text-muted-foreground/30 mb-4" />
+            <h3 className="text-lg font-medium mb-2">No Scripts Available</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
+              The marketplace is waiting for verified scripts. Visit the Vendor Forge to upload and verify your security tools.
+            </p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
           <AnimatePresence mode="popLayout">
             {filteredAssets.map((asset, index) => (
@@ -461,6 +366,7 @@ export function ScriptMarketplace() {
             ))}
           </AnimatePresence>
         </div>
+        )}
       </ScrollArea>
 
       {/* Preview Dialog */}
@@ -501,6 +407,20 @@ export function ScriptMarketplace() {
         isOpen={showSandbox}
         onClose={() => setShowSandbox(false)}
         onValidationComplete={handleValidationComplete}
+      />
+
+      {/* Transaction Stepper */}
+      <TransactionStepper
+        asset={selectedAsset}
+        currency={selectedCurrency}
+        isOpen={showTransaction}
+        onClose={() => setShowTransaction(false)}
+        onComplete={(success) => {
+          if (success) {
+            toast.success('Script added to your Vexis Lab');
+            loadAssets();
+          }
+        }}
       />
     </div>
   );

@@ -18,6 +18,7 @@ import {
   Clock,
   Star,
   Package,
+  Fingerprint,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ import {
   analyzeLogicDensity,
   generateSafetyReport,
 } from '@/lib/marketplace-db';
+import { VerificationWizard } from './VerificationWizard';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-bash';
@@ -69,6 +71,8 @@ export function VendorForge() {
   const [isUploading, setIsUploading] = useState(false);
   const [editingAsset, setEditingAsset] = useState<SecurityAsset | null>(null);
   const [analysisResult, setAnalysisResult] = useState<{ score: number; flags: string[] } | null>(null);
+  const [showVerificationWizard, setShowVerificationWizard] = useState(false);
+  const [pendingAsset, setPendingAsset] = useState<SecurityAsset | null>(null);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -129,7 +133,7 @@ export function VendorForge() {
         isVerified: false,
         isFlagged: analysis.score < 50 || analysis.flags.length > 2,
         flagReason: analysis.flags.length > 0 ? analysis.flags.join('; ') : undefined,
-        vexisSecureBadge: safetyReport.passed && analysis.score >= 70,
+        vexisSecureBadge: false, // Will be set by verification wizard
         safetyReport,
         downloads: editingAsset?.downloads || 0,
         rating: editingAsset?.rating || 0,
@@ -137,19 +141,25 @@ export function VendorForge() {
         updatedAt: Date.now(),
       };
 
-      await saveAsset(asset);
-      await loadAssets();
-      
-      resetForm();
-      toast.success(editingAsset ? 'Asset updated successfully!' : 'Asset uploaded successfully!');
-      
-      if (asset.isFlagged) {
-        toast('⚠️ Your code was flagged by the Turing Filter', { icon: '🤖' });
-      }
-    } catch (error) {
-      toast.error('Failed to save asset');
-    } finally {
+      // Open verification wizard instead of direct save
+      setPendingAsset(asset);
+      setShowVerificationWizard(true);
       setIsUploading(false);
+    } catch (error) {
+      toast.error('Failed to prepare asset');
+      setIsUploading(false);
+    }
+  };
+
+  const handleVerificationComplete = async (passed: boolean, verifiedAsset: SecurityAsset) => {
+    await saveAsset(verifiedAsset);
+    await loadAssets();
+    resetForm();
+    
+    if (passed) {
+      toast.success('Asset verified and listed on marketplace!');
+    } else {
+      toast.error('Verification failed - Asset saved as draft');
     }
   };
 
@@ -426,8 +436,8 @@ export function VendorForge() {
                     </>
                   ) : (
                     <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      {editingAsset ? 'Update Asset' : 'Upload Asset'}
+                      <Fingerprint className="w-4 h-4 mr-2" />
+                      {editingAsset ? 'Update & Verify' : 'Submit for Verification'}
                     </>
                   )}
                 </Button>
@@ -554,6 +564,17 @@ export function VendorForge() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Verification Wizard */}
+      <VerificationWizard
+        asset={pendingAsset}
+        isOpen={showVerificationWizard}
+        onClose={() => {
+          setShowVerificationWizard(false);
+          setPendingAsset(null);
+        }}
+        onVerificationComplete={handleVerificationComplete}
+      />
     </div>
   );
 }
