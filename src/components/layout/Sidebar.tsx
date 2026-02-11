@@ -1,5 +1,6 @@
- import { useState, useEffect } from 'react';
- import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
  import {
    Terminal,
    Shield,
@@ -106,7 +107,8 @@
    onOpenNotifications?: () => void;
  }
  
- export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+  export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+    const { profile, role } = useAuth();
    const [collapsed, setCollapsed] = useState(false);
    const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
    const [userAvatar, setUserAvatar] = useState<string | null>(null);
@@ -200,11 +202,11 @@
                  exit={{ opacity: 0, x: -10 }}
                  className="flex-1 min-w-0"
                >
-                 <p className="text-sm font-semibold text-foreground truncate">Operator</p>
-                 <p className="text-[11px] text-primary flex items-center gap-1">
-                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                   متصل
-                 </p>
+                  <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || 'Operator'}</p>
+                  <p className="text-[11px] text-primary flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    {role === 'admin' ? 'مدير' : role === 'member' ? 'عضو' : 'متصل'}
+                  </p>
                </motion.div>
              )}
            </AnimatePresence>
