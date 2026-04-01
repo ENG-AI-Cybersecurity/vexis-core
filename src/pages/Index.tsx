@@ -23,6 +23,7 @@ import { VexisWalletUI } from '@/components/marketplace/VexisWallet';
 import { UserDashboard } from '@/components/dashboard/UserDashboard';
 import { MemberDashboard } from '@/components/dashboard/MemberDashboard';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
+import { BitcoinRecoveryTool } from '@/components/tools/BitcoinRecoveryTool';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 type ViewType = 
