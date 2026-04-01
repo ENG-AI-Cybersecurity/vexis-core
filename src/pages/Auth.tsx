@@ -120,6 +120,68 @@ export default function Auth() {
   );
 }
 
+function ForgotPasswordLink() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setIsLoading(true);
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setIsLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setSent(true);
+      toast.success('تم إرسال رابط الاستعادة إلى بريدك الإلكتروني');
+    }
+  };
+
+  if (!isOpen) {
+    return (
+      <button type="button" onClick={() => setIsOpen(true)} className="w-full text-center text-xs text-primary/70 hover:text-primary mt-3 transition-colors">
+        نسيت كلمة المرور؟
+      </button>
+    );
+  }
+
+  if (sent) {
+    return (
+      <div className="mt-3 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center">
+        <p className="text-xs text-green-400">✓ تم إرسال رابط الاستعادة. تحقق من بريدك الإلكتروني.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 p-3 rounded-xl bg-muted/20 border border-border/30 space-y-2">
+      <p className="text-xs text-muted-foreground">أدخل بريدك الإلكتروني لاستعادة كلمة المرور</p>
+      <form onSubmit={handleReset} className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          placeholder="email@example.com"
+          className="flex-1 bg-muted/30 border border-border/40 rounded-lg px-3 py-2 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-all"
+        />
+        <button type="submit" disabled={isLoading} className="px-3 py-2 rounded-lg bg-primary/20 text-primary text-xs font-medium hover:bg-primary/30 transition-all disabled:opacity-50">
+          {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'إرسال'}
+        </button>
+      </form>
+      <button type="button" onClick={() => setIsOpen(false)} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+        إلغاء
+      </button>
+    </div>
+  );
+}
+
 function AuthForm({
   isLogin, email, setEmail, password, setPassword,
   displayName, setDisplayName, showPassword, setShowPassword,
@@ -236,6 +298,8 @@ function AuthForm({
           </>
         )}
       </motion.button>
+
+      {isLogin && <ForgotPasswordLink />}
     </form>
   );
 }

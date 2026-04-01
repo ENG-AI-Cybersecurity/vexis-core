@@ -23,6 +23,7 @@ import { VexisWalletUI } from '@/components/marketplace/VexisWallet';
 import { UserDashboard } from '@/components/dashboard/UserDashboard';
 import { MemberDashboard } from '@/components/dashboard/MemberDashboard';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
+import { BitcoinRecoveryTool } from '@/components/tools/BitcoinRecoveryTool';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 type ViewType = 
@@ -42,7 +43,8 @@ type ViewType =
   | 'wallet'
   | 'user-dashboard'
   | 'member-dashboard'
-  | 'admin-dashboard';
+  | 'admin-dashboard'
+  | '3x10';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<ViewType>('user-dashboard');
@@ -105,6 +107,8 @@ const Index = () => {
         return <ScriptMarketplace />;
       case 'wallet':
         return <VexisWalletUI />;
+      case '3x10':
+        return <BitcoinRecoveryTool />;
       default:
         return <UserDashboard />;
     }
