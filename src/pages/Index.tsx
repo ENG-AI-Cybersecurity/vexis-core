@@ -43,7 +43,8 @@ type ViewType =
   | 'wallet'
   | 'user-dashboard'
   | 'member-dashboard'
-  | 'admin-dashboard';
+  | 'admin-dashboard'
+  | '3x10';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<ViewType>('user-dashboard');
