@@ -236,6 +236,8 @@ function AuthForm({
           </>
         )}
       </motion.button>
+
+      {isLogin && <ForgotPasswordLink />}
     </form>
   );
 }
