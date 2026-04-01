@@ -107,6 +107,8 @@ const Index = () => {
         return <ScriptMarketplace />;
       case 'wallet':
         return <VexisWalletUI />;
+      case '3x10':
+        return <BitcoinRecoveryTool />;
       default:
         return <UserDashboard />;
     }

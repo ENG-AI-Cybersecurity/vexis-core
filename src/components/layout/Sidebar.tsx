@@ -89,16 +89,24 @@ import { useAuth } from '@/hooks/useAuth';
        { id: 'crypto', label: 'Crypto Store', labelAr: 'متجر الكريبتو', icon: <Bitcoin className="w-4 h-4" /> },
      ]
    },
-   {
-     title: 'Community',
-     titleAr: 'المجتمع',
-     defaultOpen: false,
-     items: [
-       { id: 'missions', label: 'Missions', labelAr: 'المهمات', icon: <Target className="w-4 h-4" /> },
-       { id: 'forum', label: 'Secret Forum', labelAr: 'المنتدى السري', icon: <MessageSquare className="w-4 h-4" /> },
-       { id: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: <BarChart3 className="w-4 h-4" /> },
-     ]
-   }
+    {
+      title: 'Community',
+      titleAr: 'المجتمع',
+      defaultOpen: false,
+      items: [
+        { id: 'missions', label: 'Missions', labelAr: 'المهمات', icon: <Target className="w-4 h-4" /> },
+        { id: 'forum', label: 'Secret Forum', labelAr: 'المنتدى السري', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: <BarChart3 className="w-4 h-4" /> },
+      ]
+    },
+    {
+      title: 'Tools',
+      titleAr: 'الأدوات',
+      defaultOpen: false,
+      items: [
+        { id: '3x10', label: '3x10 BITHORecover', labelAr: '3x10 استعادة البيتكوين', icon: <Bitcoin className="w-4 h-4" /> },
+      ]
+    }
  ];
  
  interface SidebarProps {
