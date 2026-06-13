@@ -12,28 +12,23 @@ interface TransactionResult {
   timestamp: string;
 }
 
-function hashSHA256(data: string): string {
-  let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    const char = data.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(16).padStart(64, '0').slice(0, 64);
+async function sha256Hex(data: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function generateMockTransaction(
+async function buildSimulatedTransaction(
   privateKey: string, utxoTxid: string, utxoIndex: number,
   utxoValue: number, recipientAddress: string, sendAmount: number,
   message: string, fee: number,
-): TransactionResult {
+): Promise<TransactionResult> {
   const changeAmount = utxoValue - sendAmount - fee;
   if (changeAmount < 0) throw new Error('رصيد غير كافٍ لتغطية المبلغ ورسوم المعاملة');
 
-  const mockData = `${privateKey}${utxoTxid}${utxoIndex}${recipientAddress}${sendAmount}${message}${Date.now()}`;
-  const txId = hashSHA256(mockData);
-  const rawTx = hashSHA256(mockData + 'raw') + hashSHA256(mockData + 'tx') + hashSHA256(mockData + 'hex');
-  const senderAddress = `1${hashSHA256(privateKey).slice(0, 33)}`;
+  const seed = `${privateKey}|${utxoTxid}|${utxoIndex}|${recipientAddress}|${sendAmount}|${message}|${Date.now()}`;
+  const txId = await sha256Hex(seed);
+  const rawTx = (await sha256Hex(seed + ':raw')) + (await sha256Hex(seed + ':tx')) + (await sha256Hex(seed + ':hex'));
+  const senderAddress = `1${(await sha256Hex(privateKey)).slice(0, 33)}`;
 
   return {
     txId, rawTx, senderAddress, changeAmount,
@@ -76,10 +71,10 @@ export function BitcoinRecoveryTool() {
     }
 
     setIsLoading(true);
-    await new Promise(r => setTimeout(r, 1800));
 
     try {
-      const tx = generateMockTransaction(privateKey, utxoTxid, utxoIndex, utxoValue, recipientAddress, sendAmount, message, fee);
+      await new Promise(r => setTimeout(r, 800));
+      const tx = await buildSimulatedTransaction(privateKey, utxoTxid, utxoIndex, utxoValue, recipientAddress, sendAmount, message, fee);
       setResult(tx);
       toast.success('تم إنشاء المعاملة بنجاح');
     } catch (e: any) {
