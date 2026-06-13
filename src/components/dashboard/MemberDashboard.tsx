@@ -16,7 +16,10 @@ export function MemberDashboard() {
   const [txCount, setTxCount] = useState(0);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     const load = async () => {
       const [scriptsRes, txRes] = await Promise.all([
         supabase.from('scripts').select('*').eq('status', 'verified').limit(5),

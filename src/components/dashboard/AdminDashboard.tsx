@@ -17,7 +17,10 @@ export function AdminDashboard() {
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     const load = async () => {
       const [profilesRes, scriptsRes, txRes, logsRes] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
