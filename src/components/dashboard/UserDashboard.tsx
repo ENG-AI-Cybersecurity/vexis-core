@@ -16,7 +16,10 @@ export function UserDashboard() {
   const [stats, setStats] = useState({ sessions: 0, scans: 0, score: 0 });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     const load = async () => {
       const { data: logs } = await supabase
         .from('activity_logs')
